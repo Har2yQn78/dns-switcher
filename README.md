@@ -8,10 +8,12 @@ A fast, simple CLI tool to change DNS servers on Linux systems with a beautiful 
 ## Features
 
 - Fast and lightweight
-- Automatic backup of DNS configuration
+- Automatic backup of DNS configuration (Linux)
 - DNS validation after changes
-- Automatic systemd-resolved restart
+- Automatic systemd-resolved restart (Linux)
 - Single binary, no dependencies
+- Linux support (tested on Ubuntu/Pop!\_OS)
+- macOS support (Intel & Apple Silicon)
 
 ## Supported DNS Providers
 
@@ -25,6 +27,7 @@ A fast, simple CLI tool to change DNS servers on Linux systems with a beautiful 
 - 403
 - Google DNS
 - Cloudflare DNS
+- Reset to Default
 
 ## Installation
 
@@ -32,18 +35,43 @@ A fast, simple CLI tool to change DNS servers on Linux systems with a beautiful 
 
 Download the latest release from the [releases page](https://github.com/Har2yQn78/dns-switcher/releases):
 
+**Linux:**
+
 ```bash
 # Download the binary
-wget https://github.com/Har2yQn78/dns-switcher/releases/download/v1.0.0/dns-changer
+wget https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-linux-amd64
 
 # Install it
-sudo chmod +x /usr/local/bin/dns-changer
+sudo mv dns-switcher-linux-amd64 /usr/local/bin/dns-switcher
+sudo chmod +x /usr/local/bin/dns-switcher
+```
+
+**macOS (Intel):**
+
+```bash
+# Download the binary
+curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-macos-amd64 -o dns-switcher
+
+# Install it
+sudo mv dns-switcher /usr/local/bin/
+sudo chmod +x /usr/local/bin/dns-switcher
+```
+
+**macOS (Apple Silicon):**
+
+```bash
+# Download the binary
+curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-macos-arm64 -o dns-switcher
+
+# Install it
+sudo mv dns-switcher /usr/local/bin/
+sudo chmod +x /usr/local/bin/dns-switcher
 ```
 
 ### Option 2: Install with Go
 
 ```bash
-go install github.com/Har2yQn78/dns-switcher
+go install github.com/Har2yQn78/dns-switcher@latest
 ```
 
 ### Option 3: Build from Source
@@ -51,14 +79,14 @@ go install github.com/Har2yQn78/dns-switcher
 ```bash
 # Clone the repository
 git clone https://github.com/Har2yQn78/dns-switcher.git
-cd dns-changer
+cd dns-switcher
 
 # Build
-go build -ldflags="-s -w" -o dns-changer
+go build -ldflags="-s -w" -o dns-switcher
 
 # Install
-sudo cp dns-changer /usr/local/bin/
-sudo chmod +x /usr/local/bin/dns-changer
+sudo cp dns-switcher /usr/local/bin/
+sudo chmod +x /usr/local/bin/dns-switcher
 ```
 
 ## Usage
@@ -66,7 +94,7 @@ sudo chmod +x /usr/local/bin/dns-changer
 Simply run:
 
 ```bash
-sudo dns-changer
+sudo dns-switcher
 ```
 
 **Note:** Root privileges are required to modify DNS settings.
@@ -79,11 +107,13 @@ sudo dns-changer
 
 ## Requirements
 
-- Linux
+- **Linux** (tested on Ubuntu/Pop!\_OS) or **macOS** (10.13+)
 - Root/sudo access
 - Go 1.21+ (for building from source)
 
 ## How It Works
+
+**Linux:**
 
 1. Displays current DNS servers
 2. Shows a list of available DNS providers
@@ -92,9 +122,16 @@ sudo dns-changer
 5. Restarts `systemd-resolved` if active
 6. Validates DNS servers are responding
 
+**macOS:**
+
+1. Displays current DNS servers
+2. Shows a list of available DNS providers
+3. Uses `networksetup` to change DNS for active network service
+4. Validates DNS servers are responding
+
 ## Backup
 
-Every time you change DNS, a backup is created at:
+**Linux only:** Every time you change DNS, a backup is created at:
 
 ```
 /etc/resolv.conf.bak.YYYYMMDD_HHMMSS
@@ -105,6 +142,8 @@ To restore from backup:
 ```bash
 sudo cp /etc/resolv.conf.bak.YYYYMMDD_HHMMSS /etc/resolv.conf
 ```
+
+**macOS:** DNS changes can be reverted by selecting "Reset to Default" or manually via System Preferences → Network.
 
 ## Configuration
 

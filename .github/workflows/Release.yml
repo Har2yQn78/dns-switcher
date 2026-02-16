@@ -32,6 +32,12 @@ jobs:
           # Linux 386
           GOOS=linux GOARCH=386 go build -ldflags="-s -w" -o dns-changer-linux-386
 
+          # macOS AMD64 (Intel)
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dns-changer-macos-amd64
+
+          # macOS ARM64 (Apple Silicon)
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dns-changer-macos-arm64
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -39,6 +45,8 @@ jobs:
             dns-changer-linux-amd64
             dns-changer-linux-arm64
             dns-changer-linux-386
+            dns-changer-macos-amd64
+            dns-changer-macos-arm64
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
