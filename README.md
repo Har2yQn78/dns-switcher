@@ -1,21 +1,23 @@
 # DNS Changer
 
-A fast, simple CLI tool to change DNS servers on Linux systems with a beautiful TUI interface.
+A fast, simple CLI tool to change DNS servers on Linux systems with a TUI interface.
 
 ![DNS Changer](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Features
 
-- 🎨 Beautiful table-based TUI interface
-- ⚡ Fast and lightweight
-- 🔒 Automatic backup of DNS configuration (Linux)
-- ✅ DNS validation after changes
-- 🔄 Automatic systemd-resolved restart (Linux)
-- 📦 Single binary, no dependencies
-- 🐧 Linux support (tested on Ubuntu/Pop!\_OS)
-- 🍎 macOS support (Intel & Apple Silicon)
-- 🪟 Windows support (64-bit, 32-bit, ARM64)
+- Fast and lightweight
+- Automatic backup of DNS configuration (Linux)
+- DNS validation after changes
+- Automatic systemd-resolved restart (Linux)
+- Single binary, no dependencies
+- Linux support (tested on Ubuntu/Pop!\_OS)
+- macOS support (Intel & Apple Silicon)
+- Windows support (64-bit, 32-bit, ARM64)
+- **Custom DNS input** - Add your own DNS servers on the fly
+- **Speed test** - Automatically tests latency of all DNS providers
+- **Interactive monitoring** - Live dashboard with real-time DNS performance stats
 
 ## Supported DNS Providers
 
@@ -127,9 +129,17 @@ sudo dns-switcher
 
 ### Navigation
 
+**Main Menu:**
+
 - `↑/↓` or `j/k` - Navigate through providers
 - `Enter` - Select a provider
 - `q` or `Ctrl+C` - Quit
+
+**Monitoring Mode:**
+
+- `r` - Refresh (test DNS immediately)
+- `c` - Change DNS (return to selection menu)
+- `q` - Quit
 
 ## Requirements
 
@@ -162,6 +172,34 @@ sudo dns-switcher
 3. Uses PowerShell `Set-DnsClientServerAddress` to update DNS
 4. Flushes DNS cache
 5. Validates DNS servers are responding
+
+## New Features
+
+### Speed Testing
+
+Before displaying the menu, the tool automatically tests the latency of all DNS providers. Results are displayed with color coding:
+
+- 🟢 **Green** - Fast (< 20ms)
+- 🟡 **Yellow** - Medium (20-50ms)
+- 🔴 **Red** - Slow (> 50ms)
+
+### Custom DNS
+
+Select "Add Custom DNS" from the menu to enter your own DNS servers. Supports both comma and space-separated formats:
+
+- `8.8.8.8,1.1.1.1`
+- `8.8.8.8 1.1.1.1`
+
+### Interactive Monitoring
+
+After changing DNS, automatically enters monitoring mode showing:
+
+- Real-time latency updates (every second)
+- Query success/failure counts
+- Uptime since DNS change
+- Current DNS servers
+
+Press `c` to change DNS again, or `q` to quit.
 
 ## Backup
 

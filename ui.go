@@ -3,10 +3,13 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+type tickMsg time.Time
 
 var (
 	titleStyle = lipgloss.NewStyle().
@@ -35,47 +38,108 @@ var (
 			Foreground(lipgloss.Color("#6272A4")).
 			Italic(true)
 
-	// Latency color styles
 	fastLatencyStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#50FA7B")) // Green < 20ms
+				Foreground(lipgloss.Color("#50FA7B"))
 
 	mediumLatencyStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#F1FA8C")) // Yellow 20-50ms
+				Foreground(lipgloss.Color("#F1FA8C"))
 
 	slowLatencyStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FF5555")) // Red > 50ms
+				Foreground(lipgloss.Color("#FF5555"))
 
 	failedLatencyStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#6272A4")) // Gray (failed/not tested)
+				Foreground(lipgloss.Color("#6272A4"))
 )
 
 type model struct {
-	cursor       int
-	selected     int
-	quitting     bool
-	inputMode    bool
-	customInput  string
-	customError  string
+	cursor         int
+	selected       int
+	quitting       bool
+	inputMode      bool
+	customInput    string
+	customError    string
+	monitorMode    bool
+	monitorStats   MonitorStats
+}
+
+type MonitorStats struct {
+	ProviderName   string
+	CurrentDNS     []string
+	QueriesSuccess int
+	QueriesFailed  int
+	LastLatency    int
+	Uptime         int
 }
 
 func initialModel() model {
 	return model{
-		cursor:      0,
-		selected:    -1,
-		quitting:    false,
-		inputMode:   false,
-		customInput: "",
-		customError: "",
+		cursor:       0,
+		selected:     -1,
+		quitting:     false,
+		inputMode:    false,
+		customInput:  "",
+		customError:  "",
+		monitorMode:  false,
+		monitorStats: MonitorStats{},
 	}
 }
 
+func doTick() tea.Cmd {
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return tickMsg(t)
+	})
+}
+
 func (m model) Init() tea.Cmd {
+	if m.monitorMode {
+		return doTick()
+	}
 	return nil
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tickMsg:
+		if m.monitorMode {
+			m.monitorStats.Uptime++
+
+			if len(m.monitorStats.CurrentDNS) > 0 {
+				latency := TestDNSLatency(m.monitorStats.CurrentDNS[0])
+				if latency > 0 {
+					m.monitorStats.LastLatency = latency
+					m.monitorStats.QueriesSuccess++
+				} else {
+					m.monitorStats.QueriesFailed++
+				}
+			}
+
+			return m, doTick()
+		}
+		return m, nil
+
 	case tea.KeyMsg:
+		if m.monitorMode {
+			switch msg.String() {
+			case "ctrl+c", "q":
+				m.quitting = true
+				return m, tea.Quit
+			case "r":
+				if len(m.monitorStats.CurrentDNS) > 0 {
+					latency := TestDNSLatency(m.monitorStats.CurrentDNS[0])
+					if latency > 0 {
+						m.monitorStats.LastLatency = latency
+						m.monitorStats.QueriesSuccess++
+					} else {
+						m.monitorStats.QueriesFailed++
+					}
+				}
+			case "c":
+				m.monitorMode = false
+				m.selected = -1
+			}
+			return m, nil
+		}
+
 		if m.inputMode {
 			switch msg.String() {
 			case "ctrl+c":
@@ -151,6 +215,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func formatDuration(seconds int) string {
+	if seconds < 60 {
+		return fmt.Sprintf("%ds", seconds)
+	}
+	minutes := seconds / 60
+	secs := seconds % 60
+	if minutes < 60 {
+		return fmt.Sprintf("%dm %ds", minutes, secs)
+	}
+	hours := minutes / 60
+	mins := minutes % 60
+	return fmt.Sprintf("%dh %dm", hours, mins)
+}
+
 func parseCustomDNS(input string) []string {
 	input = strings.ReplaceAll(input, ",", " ")
 
@@ -170,6 +248,71 @@ func parseCustomDNS(input string) []string {
 func (m model) View() string {
 	if m.quitting {
 		return titleStyle.Render("Goodbye!\n")
+	}
+
+	if m.monitorMode {
+		var b strings.Builder
+
+		b.WriteString("\n")
+		b.WriteString(titleStyle.Render("  DNS Monitoring Dashboard") + "\n\n")
+
+		b.WriteString(fmt.Sprintf("  %s %s\n\n",
+			headerStyle.Render("Provider:"),
+			infoStyle.Render(m.monitorStats.ProviderName)))
+
+		b.WriteString(headerStyle.Render("  Current DNS Servers:") + "\n")
+		for _, dns := range m.monitorStats.CurrentDNS {
+			b.WriteString(fmt.Sprintf("    • %s\n", serverStyle.Render(dns)))
+		}
+		b.WriteString("\n")
+
+		border := borderStyle.Render("  ┌────────────────────────┬──────────────┐")
+		b.WriteString(border + "\n")
+
+		uptimeStr := formatDuration(m.monitorStats.Uptime)
+		b.WriteString(fmt.Sprintf("  │ %-22s │ %-12s │\n",
+			headerStyle.Render("Uptime"),
+			infoStyle.Render(uptimeStr)))
+
+		var latencyStr string
+		var latencyColor lipgloss.Style
+		if m.monitorStats.LastLatency < 20 {
+			latencyStr = fmt.Sprintf("%dms", m.monitorStats.LastLatency)
+			latencyColor = fastLatencyStyle
+		} else if m.monitorStats.LastLatency < 50 {
+			latencyStr = fmt.Sprintf("%dms", m.monitorStats.LastLatency)
+			latencyColor = mediumLatencyStyle
+		} else if m.monitorStats.LastLatency > 0 {
+			latencyStr = fmt.Sprintf("%dms", m.monitorStats.LastLatency)
+			latencyColor = slowLatencyStyle
+		} else {
+			latencyStr = "N/A"
+			latencyColor = failedLatencyStyle
+		}
+		b.WriteString(fmt.Sprintf("  │ %-22s │ %-12s │\n",
+			headerStyle.Render("Current Latency"),
+			latencyColor.Render(latencyStr)))
+
+		b.WriteString(fmt.Sprintf("  │ %-22s │ %-12s │\n",
+			headerStyle.Render("Queries Success"),
+			fastLatencyStyle.Render(fmt.Sprintf("%d", m.monitorStats.QueriesSuccess))))
+
+		if m.monitorStats.QueriesFailed > 0 {
+			b.WriteString(fmt.Sprintf("  │ %-22s │ %-12s │\n",
+				headerStyle.Render("Queries Failed"),
+				slowLatencyStyle.Render(fmt.Sprintf("%d", m.monitorStats.QueriesFailed))))
+		} else {
+			b.WriteString(fmt.Sprintf("  │ %-22s │ %-12s │\n",
+				headerStyle.Render("Queries Failed"),
+				infoStyle.Render("0")))
+		}
+
+		bottomBorder := borderStyle.Render("  └────────────────────────┴──────────────┘")
+		b.WriteString(bottomBorder + "\n\n")
+
+		b.WriteString(helpStyle.Render("  r: refresh • c: change DNS • q: quit") + "\n")
+
+		return b.String()
 	}
 
 	if m.inputMode {
@@ -196,6 +339,7 @@ func (m model) View() string {
 	b.WriteString("\n")
 	b.WriteString(titleStyle.Render("  DNS Changer") + "\n")
 	b.WriteString(helpStyle.Render("  Press q or ctrl+c to quit") + "\n\n")
+
 	border := borderStyle.Render("  ┌──────────────────────┬──────────────────────────────────────────┬──────────┐")
 	b.WriteString(border + "\n")
 
@@ -234,6 +378,7 @@ func (m model) View() string {
 		}
 
 		servers = fmt.Sprintf("%-40s", servers)
+
 		var latencyStr string
 		var latencyStyle lipgloss.Style
 
@@ -267,7 +412,8 @@ func (m model) View() string {
 			b.WriteString(row + "\n")
 		}
 	}
-	bottomBorder := borderStyle.Render("  └──────────────────────┴────────────────────────────────────┴──────────┘")
+
+	bottomBorder := borderStyle.Render("  └──────────────────────┴──────────────────────────────────────────┴──────────┘")
 	b.WriteString(bottomBorder + "\n\n")
 
 	help := helpStyle.Render("  Use ↑/↓ or j/k to navigate • enter to select • q to quit")

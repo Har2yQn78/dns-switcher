@@ -150,6 +150,7 @@ func main() {
 		if provider.Name != "Reset to Default" {
 			validationLines := []string{}
 			validationLines = append(validationLines, infoStyle.Render("Testing DNS resolution..."))
+
 			success, validationErr := ValidateDNS(provider.Servers)
 			if success {
 				validationLines = append(validationLines, successStyle.Render("All DNS servers responding"))
@@ -158,6 +159,26 @@ func main() {
 			}
 
 			printBox("DNS Validation", validationLines)
+		}
+
+		fmt.Println(labelStyle.Render("\n  Entering monitoring mode...\n"))
+		monitorModel := model{
+			monitorMode: true,
+			monitorStats: MonitorStats{
+				ProviderName:   provider.Name,
+				CurrentDNS:     provider.Servers,
+				QueriesSuccess: 0,
+				QueriesFailed:  0,
+				LastLatency:    provider.Latency,
+				Uptime:         0,
+			},
+		}
+
+		p = tea.NewProgram(monitorModel)
+		_, err = p.Run()
+		if err != nil {
+			fmt.Printf(errorStyle.Render("Error: %v\n"), err)
+			os.Exit(1)
 		}
 	}
 }
