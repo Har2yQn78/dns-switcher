@@ -42,9 +42,11 @@ func TestAllProviders() {
 
 func printBox(title string, content []string) {
 	width := 60
+
 	fmt.Println(boxStyle.Render("  ┌" + repeatStr("─", width-4) + "┐"))
 	fmt.Println(boxStyle.Render("  │ ") + labelStyle.Render(title) + boxStyle.Render(repeatStr(" ", width-len(title)-6) + "│"))
 	fmt.Println(boxStyle.Render("  ├" + repeatStr("─", width-4) + "┤"))
+
 	for _, line := range content {
 		padding := width - len(stripANSI(line)) - 6
 		if padding < 0 {
@@ -89,8 +91,10 @@ func stripANSI(str string) string {
 }
 
 func main() {
-	if os.Geteuid() != 0 {
-		fmt.Println(errorStyle.Render("Error: Please run this program as root (use sudo)"))
+	if !IsAdmin() {
+		fmt.Println(errorStyle.Render("Error: Please run this program with administrator privileges"))
+		fmt.Println(infoStyle.Render("\nLinux/macOS: sudo ./dns-switcher"))
+		fmt.Println(infoStyle.Render("Windows: Run PowerShell as Administrator, then run dns-switcher.exe"))
 		os.Exit(1)
 	}
 
@@ -109,16 +113,22 @@ func main() {
 
 	TestAllProviders()
 
-	p := tea.NewProgram(initialModel())
-	finalModel, err := p.Run()
-	if err != nil {
-		fmt.Printf(errorStyle.Render("Error: %v\n"), err)
-		os.Exit(1)
-	}
+	for {
+		p := tea.NewProgram(initialModel())
+		finalModel, err := p.Run()
+		if err != nil {
+			fmt.Printf(errorStyle.Render("Error: %v\n"), err)
+			os.Exit(1)
+		}
 
-	m := finalModel.(model)
-	if m.selected >= 0 && !m.quitting {
-		provider := providers[m.selected]
+		m := finalModel.(model)
+
+		if m.quitting && !m.monitorMode {
+			break
+		}
+
+		if m.selected >= 0 && !m.quitting {
+			provider := providers[m.selected]
 
 		fmt.Println(labelStyle.Render("  Selected: ") + infoStyle.Render(provider.Name))
 		fmt.Println()
@@ -162,6 +172,7 @@ func main() {
 		}
 
 		fmt.Println(labelStyle.Render("\n  Entering monitoring mode...\n"))
+
 		monitorModel := model{
 			monitorMode: true,
 			monitorStats: MonitorStats{
@@ -175,10 +186,19 @@ func main() {
 		}
 
 		p = tea.NewProgram(monitorModel)
-		_, err = p.Run()
+		monitorResult, err := p.Run()
 		if err != nil {
 			fmt.Printf(errorStyle.Render("Error: %v\n"), err)
 			os.Exit(1)
 		}
+
+		monitorFinal := monitorResult.(model)
+		if monitorFinal.monitorMode == false && !monitorFinal.quitting {
+			fmt.Println(labelStyle.Render("\n  Returning to DNS selection...\n"))
+			continue
+		}
+
+		break
+	}
 	}
 }

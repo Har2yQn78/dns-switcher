@@ -1,4 +1,4 @@
-//go:build linux
+// +build linux
 
 package main
 
@@ -12,6 +12,10 @@ import (
 )
 
 const resolvConfPath = "/etc/resolv.conf"
+
+func IsAdmin() bool {
+	return os.Geteuid() == 0
+}
 
 func GetCurrentDNS() ([]string, error) {
 	file, err := os.Open(resolvConfPath)
@@ -58,7 +62,7 @@ func BackupResolvConf() (string, error) {
 }
 
 func UpdateResolvConf(provider DNSProvider) error {
-	backupPath, err := BackupResolvConf()
+	_, err := BackupResolvConf()
 	if err != nil {
 		return fmt.Errorf("backup failed: %w", err)
 	}
@@ -83,7 +87,6 @@ func UpdateResolvConf(provider DNSProvider) error {
 		return fmt.Errorf("failed to write %s: %w", resolvConfPath, err)
 	}
 
-	fmt.Printf("✓ Backup created: %s\n", backupPath)
 	return nil
 }
 
@@ -96,7 +99,6 @@ func RestartSystemdResolved() error {
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to restart systemd-resolved: %w", err)
 		}
-		fmt.Println("✓ systemd-resolved restarted")
 	}
 
 	return nil

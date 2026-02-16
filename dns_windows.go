@@ -4,9 +4,18 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
+
+func IsAdmin() bool {
+	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
+	if err != nil {
+		return false
+	}
+	return true
+}
 
 func GetCurrentDNS() ([]string, error) {
 	adapter, err := getActiveNetworkAdapter()
@@ -80,7 +89,7 @@ func UpdateResolvConf(provider DNSProvider) error {
 	}
 
 	flushCmd := exec.Command("ipconfig", "/flushdns")
-	_ = flushCmd.Run()
+	_ = flushCmd.Run() // Ignore errors, not critical
 
 	return nil
 }

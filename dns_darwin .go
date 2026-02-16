@@ -4,11 +4,17 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
 
+func IsAdmin() bool {
+	return os.Geteuid() == 0
+}
+
 func GetCurrentDNS() ([]string, error) {
+	// Get the active network service
 	service, err := getActiveNetworkService()
 	if err != nil {
 		return nil, err
@@ -30,6 +36,7 @@ func GetCurrentDNS() ([]string, error) {
 }
 
 func getActiveNetworkService() (string, error) {
+	// Try to get Wi-Fi first
 	cmd := exec.Command("networksetup", "-listallnetworkservices")
 	output, err := cmd.Output()
 	if err != nil {
