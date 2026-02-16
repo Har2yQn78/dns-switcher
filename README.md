@@ -1,20 +1,21 @@
 # DNS Changer
 
-A fast, simple CLI tool to change DNS servers on Linux systems with a TUI interface.
+A fast, simple CLI tool to change DNS servers on Linux systems with a beautiful TUI interface.
 
 ![DNS Changer](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Features
 
-- Fast and lightweight
-- Automatic backup of DNS configuration (Linux)
-- DNS validation after changes
-- Automatic systemd-resolved restart (Linux)
-- Single binary, no dependencies
-- Linux support
-- macOS support (Intel & Apple Silicon)
-- Windows support (64-bit, 32-bit, ARM64)
+- 🎨 Beautiful table-based TUI interface
+- ⚡ Fast and lightweight
+- 🔒 Automatic backup of DNS configuration (Linux)
+- ✅ DNS validation after changes
+- 🔄 Automatic systemd-resolved restart (Linux)
+- 📦 Single binary, no dependencies
+- 🐧 Linux support (tested on Ubuntu/Pop!\_OS)
+- 🍎 macOS support (Intel & Apple Silicon)
+- 🪟 Windows support (64-bit, 32-bit, ARM64)
 
 ## Supported DNS Providers
 
@@ -40,40 +41,40 @@ Download the latest release from the [releases page](https://github.com/Har2yQn7
 
 ```bash
 # Download the binary
-wget https://github.com/Har2yQn78/dns-switcher/releases/download/v1.0.0/dns-changer-linux-amd64
+wget https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-linux-amd64
 
 # Install it
-sudo mv dns-changer-linux-amd64 /usr/local/bin/dns-changer
-sudo chmod +x /usr/local/bin/dns-changer
+sudo mv dns-switcher-linux-amd64 /usr/local/bin/dns-switcher
+sudo chmod +x /usr/local/bin/dns-switcher
 ```
 
 **macOS (Intel):**
 
 ```bash
 # Download the binary
-curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-changer-macos-amd64 -o dns-changer
+curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-macos-amd64 -o dns-switcher
 
 # Install it
-sudo mv dns-changer /usr/local/bin/
-sudo chmod +x /usr/local/bin/dns-changer
+sudo mv dns-switcher /usr/local/bin/
+sudo chmod +x /usr/local/bin/dns-switcher
 ```
 
 **macOS (Apple Silicon):**
 
 ```bash
 # Download the binary
-curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-changer-macos-arm64 -o dns-changer
+curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-macos-arm64 -o dns-switcher
 
 # Install it
-sudo mv dns-changer /usr/local/bin/
-sudo chmod +x /usr/local/bin/dns-changer
+sudo mv dns-switcher /usr/local/bin/
+sudo chmod +x /usr/local/bin/dns-switcher
 ```
 
 **Windows (64-bit):**
 
 ```powershell
 # Download using PowerShell
-Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-changer-windows-amd64.exe" -OutFile "dns-changer.exe"
+Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-windows-amd64.exe" -OutFile "dns-switcher.exe"
 
 # Move to a directory in your PATH (optional)
 # Or run directly from current directory
@@ -83,7 +84,7 @@ Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/lates
 
 ```powershell
 # Download using PowerShell
-Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-changer-windows-386.exe" -OutFile "dns-changer.exe"
+Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-windows-386.exe" -OutFile "dns-switcher.exe"
 ```
 
 ### Option 2: Install with Go
