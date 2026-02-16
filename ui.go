@@ -5,6 +5,35 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	titleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF79C6")).
+			Bold(true)
+
+	headerStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#BD93F9")).
+			Bold(true)
+
+	selectedRowStyle = lipgloss.NewStyle().
+				Background(lipgloss.Color("#44475A")).
+				Foreground(lipgloss.Color("#50FA7B")).
+				Bold(true)
+
+	normalRowStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#F8F8F2"))
+
+	serverStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#8BE9FD"))
+
+	borderStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#6272A4"))
+
+	helpStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#6272A4")).
+			Italic(true)
 )
 
 type model struct {
@@ -54,23 +83,71 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	if m.quitting {
-		return "Goodbye!\n"
+		return titleStyle.Render("Goodbye!\n")
 	}
 
-	s := "DNS Changer - Select a provider:\n\n"
+	var b strings.Builder
+
+	b.WriteString("\n")
+	b.WriteString(titleStyle.Render("  DNS Changer") + "\n")
+	b.WriteString(helpStyle.Render("  Press q or ctrl+c to quit") + "\n\n")
+	border := borderStyle.Render("  ┌──────────────────────┬────────────────────────────────────┐")
+	b.WriteString(border + "\n")
+
+	header := fmt.Sprintf("  │ %-20s │ %-34s │",
+		headerStyle.Render("Provider"),
+		headerStyle.Render("DNS Servers"),
+	)
+	b.WriteString(header + "\n")
+
+	separator := borderStyle.Render("  ├──────────────────────┼────────────────────────────────────┤")
+	b.WriteString(separator + "\n")
 
 	for i, provider := range providers {
-		cursor := " "
+		var rowStyle lipgloss.Style
 		if m.cursor == i {
-			cursor = ">"
+			rowStyle = selectedRowStyle
+		} else {
+			rowStyle = normalRowStyle
 		}
 
-		servers := strings.Join(provider.Servers, ", ")
+		providerName := provider.Name
+		if m.cursor == i {
+			providerName = "> " + providerName
+		} else {
+			providerName = "  " + providerName
+		}
 
-		s += fmt.Sprintf("%s %-20s %s\n", cursor, provider.Name, servers)
+		var serverList []string
+		for _, server := range provider.Servers {
+			serverList = append(serverList, fmt.Sprintf("%-15s", server))
+		}
+		servers := strings.Join(serverList, " ")
+
+		if len(servers) > 34 {
+			servers = servers[:31] + "..."
+		}
+
+		if m.cursor == i {
+			row := fmt.Sprintf("  │ %-20s │ %-34s │",
+				rowStyle.Render(providerName),
+				rowStyle.Render(servers),
+			)
+			b.WriteString(row + "\n")
+		} else {
+			row := fmt.Sprintf("  │ %-20s │ %-34s │",
+				rowStyle.Render(providerName),
+				serverStyle.Render(servers),
+			)
+			b.WriteString(row + "\n")
+		}
 	}
 
-	s += "\nUse ↑/↓ arrows to move, Enter to select, q to quit\n"
+	bottomBorder := borderStyle.Render("  └──────────────────────┴────────────────────────────────────┘")
+	b.WriteString(bottomBorder + "\n\n")
 
-	return s
+	help := helpStyle.Render("  Use ↑/↓ or j/k to navigate • enter to select • q to quit")
+	b.WriteString(help + "\n")
+
+	return b.String()
 }
