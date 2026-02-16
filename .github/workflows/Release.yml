@@ -24,29 +24,41 @@ jobs:
       - name: Build binaries
         run: |
           # Linux AMD64
-          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dns-changer-linux-amd64
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dns-switcher-linux-amd64
 
           # Linux ARM64
-          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dns-changer-linux-arm64
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dns-switcher-linux-arm64
 
           # Linux 386
-          GOOS=linux GOARCH=386 go build -ldflags="-s -w" -o dns-changer-linux-386
+          GOOS=linux GOARCH=386 go build -ldflags="-s -w" -o dns-switcher-linux-386
 
           # macOS AMD64 (Intel)
-          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dns-changer-macos-amd64
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dns-switcher-macos-amd64
 
           # macOS ARM64 (Apple Silicon)
-          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dns-changer-macos-arm64
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dns-switcher-macos-arm64
+
+          # Windows AMD64
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dns-switcher-windows-amd64.exe
+
+          # Windows 386 (32-bit)
+          GOOS=windows GOARCH=386 go build -ldflags="-s -w" -o dns-switcher-windows-386.exe
+
+          # Windows ARM64
+          GOOS=windows GOARCH=arm64 go build -ldflags="-s -w" -o dns-switcher-windows-arm64.exe
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dns-changer-linux-amd64
-            dns-changer-linux-arm64
-            dns-changer-linux-386
-            dns-changer-macos-amd64
-            dns-changer-macos-arm64
+            dns-switcher-linux-amd64
+            dns-switcher-linux-arm64
+            dns-switcher-linux-386
+            dns-switcher-macos-amd64
+            dns-switcher-macos-arm64
+            dns-switcher-windows-amd64.exe
+            dns-switcher-windows-386.exe
+            dns-switcher-windows-arm64.exe
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

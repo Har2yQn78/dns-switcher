@@ -1,5 +1,8 @@
 # Binaries
+dns-switcher
+dns-switcher*
 dns-changer
+dns-changer*
 *.exe
 *.exe~
 *.dll
@@ -32,6 +35,3 @@ Thumbs.db
 # Build artifacts
 dist/
 build/
-
-dns-switcher*
-dns-changer*

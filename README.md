@@ -1,6 +1,6 @@
 # DNS Changer
 
-A fast, simple CLI tool to change DNS servers on Linux systems with a beautiful TUI interface.
+A fast, simple CLI tool to change DNS servers on Linux systems with a TUI interface.
 
 ![DNS Changer](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -12,8 +12,9 @@ A fast, simple CLI tool to change DNS servers on Linux systems with a beautiful 
 - DNS validation after changes
 - Automatic systemd-resolved restart (Linux)
 - Single binary, no dependencies
-- Linux support (tested on Ubuntu/Pop!\_OS)
+- Linux support
 - macOS support (Intel & Apple Silicon)
+- Windows support (64-bit, 32-bit, ARM64)
 
 ## Supported DNS Providers
 
@@ -68,6 +69,23 @@ sudo mv dns-changer /usr/local/bin/
 sudo chmod +x /usr/local/bin/dns-changer
 ```
 
+**Windows (64-bit):**
+
+```powershell
+# Download using PowerShell
+Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-changer-windows-amd64.exe" -OutFile "dns-changer.exe"
+
+# Move to a directory in your PATH (optional)
+# Or run directly from current directory
+```
+
+**Windows (32-bit):**
+
+```powershell
+# Download using PowerShell
+Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-changer-windows-386.exe" -OutFile "dns-changer.exe"
+```
+
 ### Option 2: Install with Go
 
 ```bash
@@ -91,13 +109,20 @@ sudo chmod +x /usr/local/bin/dns-switcher
 
 ## Usage
 
-Simply run:
+**Linux/macOS:**
 
 ```bash
-sudo dns-changer
+sudo dns-switcher
 ```
 
-**Note:** Root privileges are required to modify DNS settings.
+**Windows:**
+
+```powershell
+# Run as Administrator (Right-click PowerShell -> Run as Administrator)
+.\dns-switcher.exe
+```
+
+**Note:** Administrator/root privileges are required to modify DNS settings.
 
 ### Navigation
 
@@ -107,8 +132,8 @@ sudo dns-changer
 
 ## Requirements
 
-- **Linux** (tested on Ubuntu/Pop!\_OS) or **macOS** (10.13+)
-- Root/sudo access
+- **Linux** (tested on Ubuntu/Pop!\_OS), **macOS** (10.13+), or **Windows** (10/11)
+- Administrator/root/sudo access
 - Go 1.21+ (for building from source)
 
 ## How It Works
@@ -129,6 +154,14 @@ sudo dns-changer
 3. Uses `networksetup` to change DNS for active network service
 4. Validates DNS servers are responding
 
+**Windows:**
+
+1. Displays current DNS servers
+2. Shows a list of available DNS providers
+3. Uses PowerShell `Set-DnsClientServerAddress` to update DNS
+4. Flushes DNS cache
+5. Validates DNS servers are responding
+
 ## Backup
 
 **Linux only:** Every time you change DNS, a backup is created at:
@@ -144,6 +177,8 @@ sudo cp /etc/resolv.conf.bak.YYYYMMDD_HHMMSS /etc/resolv.conf
 ```
 
 **macOS:** DNS changes can be reverted by selecting "Reset to Default" or manually via System Preferences → Network.
+
+**Windows:** DNS changes can be reverted by selecting "Reset to Default" or manually via Settings → Network & Internet → Change adapter options → Properties → IPv4 Properties.
 
 ## Configuration
 
