@@ -1,10 +1,10 @@
+//go:build linux
+
 package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
-	"net"
 	"os"
 	"os/exec"
 	"strings"
@@ -100,41 +100,4 @@ func RestartSystemdResolved() error {
 	}
 
 	return nil
-}
-
-func ValidateDNS(servers []string) (bool, error) {
-	testDomain := "google.com"
-
-	fmt.Println("\nValidating DNS servers...")
-
-	for _, server := range servers {
-		fmt.Printf("  Testing %s... ", server)
-
-		resolver := &net.Resolver{
-			PreferGo: true,
-			Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-				d := net.Dialer{
-					Timeout: 3 * time.Second,
-				}
-				return d.Dial(network, net.JoinHostPort(server, "53"))
-			},
-		}
-
-		ctx := context.Background()
-		addrs, err := resolver.LookupHost(ctx, testDomain)
-
-		if err != nil {
-			fmt.Printf("✗ Failed: %v\n", err)
-			return false, fmt.Errorf("DNS server %s is not responding", server)
-		}
-
-		if len(addrs) > 0 {
-			fmt.Printf("✓ OK (resolved to %s)\n", addrs[0])
-		} else {
-			fmt.Println("✗ No response")
-			return false, fmt.Errorf("DNS server %s returned no results", server)
-		}
-	}
-
-	return true, nil
 }
