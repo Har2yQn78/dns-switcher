@@ -34,10 +34,9 @@ Download the latest release from the [releases page](https://github.com/Har2yQn7
 
 ```bash
 # Download the binary
-wget https://github.com/Har2yQn78/dns-changer/releases/latest/download/dns-changer-linux-amd64
+wget https://github.com/Har2yQn78/dns-switcher/releases/download/v1.0.0/dns-changer
 
 # Install it
-sudo mv dns-changer-linux-amd64 /usr/local/bin/dns-switcher
 sudo chmod +x /usr/local/bin/dns-changer
 ```
 
@@ -125,7 +124,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Author
 
-Created by [YOUR_NAME](https://github.com/YOUR_USERNAME)
+Created by [Harry](https://github.com/Har2yQn78)
 
 ## Acknowledgments
 
