@@ -26,13 +26,25 @@ var (
 			Bold(true)
 )
 
+func TestAllProviders() {
+	for i := range providers {
+		if providers[i].Name == "Reset to Default" || providers[i].Name == "Add Custom DNS" {
+			providers[i].Latency = -1
+			continue
+		}
+
+		if len(providers[i].Servers) > 0 {
+			latency := TestDNSLatency(providers[i].Servers[0])
+			providers[i].Latency = latency
+		}
+	}
+}
+
 func printBox(title string, content []string) {
 	width := 60
-
 	fmt.Println(boxStyle.Render("  ┌" + repeatStr("─", width-4) + "┐"))
 	fmt.Println(boxStyle.Render("  │ ") + labelStyle.Render(title) + boxStyle.Render(repeatStr(" ", width-len(title)-6) + "│"))
 	fmt.Println(boxStyle.Render("  ├" + repeatStr("─", width-4) + "┤"))
-
 	for _, line := range content {
 		padding := width - len(stripANSI(line)) - 6
 		if padding < 0 {
@@ -95,6 +107,8 @@ func main() {
 	}
 	printBox("Current DNS Servers", dnsLines)
 
+	TestAllProviders()
+
 	p := tea.NewProgram(initialModel())
 	finalModel, err := p.Run()
 	if err != nil {
@@ -136,7 +150,6 @@ func main() {
 		if provider.Name != "Reset to Default" {
 			validationLines := []string{}
 			validationLines = append(validationLines, infoStyle.Render("Testing DNS resolution..."))
-
 			success, validationErr := ValidateDNS(provider.Servers)
 			if success {
 				validationLines = append(validationLines, successStyle.Render("All DNS servers responding"))

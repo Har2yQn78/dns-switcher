@@ -31,3 +31,32 @@ func ValidateDNS(servers []string) (bool, error) {
 
 	return true, nil
 }
+
+func TestDNSLatency(server string) int {
+	testDomain := "google.com"
+
+	resolver := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: 2 * time.Second,
+			}
+			return d.Dial(network, net.JoinHostPort(server, "53"))
+		},
+	}
+
+	start := time.Now()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	_, err := resolver.LookupHost(ctx, testDomain)
+
+	elapsed := time.Since(start).Milliseconds()
+
+	if err != nil {
+		return -1
+	}
+
+	return int(elapsed)
+}
