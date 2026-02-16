@@ -39,33 +39,33 @@ Download the latest release from the [releases page](https://github.com/Har2yQn7
 
 ```bash
 # Download the binary
-wget https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-linux-amd64
+wget https://github.com/Har2yQn78/dns-switcher/releases/download/v1.0.0/dns-changer-linux-amd64
 
 # Install it
-sudo mv dns-switcher-linux-amd64 /usr/local/bin/dns-switcher
-sudo chmod +x /usr/local/bin/dns-switcher
+sudo mv dns-changer-linux-amd64 /usr/local/bin/dns-changer
+sudo chmod +x /usr/local/bin/dns-changer
 ```
 
 **macOS (Intel):**
 
 ```bash
 # Download the binary
-curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-macos-amd64 -o dns-switcher
+curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-changer-macos-amd64 -o dns-changer
 
 # Install it
-sudo mv dns-switcher /usr/local/bin/
-sudo chmod +x /usr/local/bin/dns-switcher
+sudo mv dns-changer /usr/local/bin/
+sudo chmod +x /usr/local/bin/dns-changer
 ```
 
 **macOS (Apple Silicon):**
 
 ```bash
 # Download the binary
-curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-macos-arm64 -o dns-switcher
+curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-changer-macos-arm64 -o dns-changer
 
 # Install it
-sudo mv dns-switcher /usr/local/bin/
-sudo chmod +x /usr/local/bin/dns-switcher
+sudo mv dns-changer /usr/local/bin/
+sudo chmod +x /usr/local/bin/dns-changer
 ```
 
 ### Option 2: Install with Go
@@ -94,7 +94,7 @@ sudo chmod +x /usr/local/bin/dns-switcher
 Simply run:
 
 ```bash
-sudo dns-switcher
+sudo dns-changer
 ```
 
 **Note:** Root privileges are required to modify DNS settings.
