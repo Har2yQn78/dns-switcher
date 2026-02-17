@@ -9,6 +9,15 @@ import (
 	"strings"
 )
 
+func powershell(args ...string) *exec.Cmd {
+	pwsh := "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+	if _, err := os.Stat(pwsh); err == nil {
+		return exec.Command(pwsh, args...)
+	}
+
+	return exec.Command("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", args...)
+}
+
 func IsAdmin() bool {
 	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
 	if err != nil {
@@ -23,7 +32,7 @@ func GetCurrentDNS() ([]string, error) {
 		return nil, err
 	}
 
-	cmd := exec.Command("powershell", "-Command",
+	cmd := powershell("-Command",
 		fmt.Sprintf("(Get-DnsClientServerAddress -InterfaceAlias '%s' -AddressFamily IPv4).ServerAddresses", adapter))
 	output, err := cmd.Output()
 	if err != nil {
@@ -48,7 +57,7 @@ func GetCurrentDNS() ([]string, error) {
 }
 
 func getActiveNetworkAdapter() (string, error) {
-	cmd := exec.Command("powershell", "-Command",
+	cmd := powershell("-Command",
 		"Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | Select-Object -First 1 -ExpandProperty Name")
 	output, err := cmd.Output()
 	if err != nil {
@@ -76,20 +85,20 @@ func UpdateResolvConf(provider DNSProvider) error {
 	var cmd *exec.Cmd
 
 	if provider.Name == "Reset to Default" {
-		cmd = exec.Command("powershell", "-Command",
+		cmd = powershell("-Command",
 			fmt.Sprintf("Set-DnsClientServerAddress -InterfaceAlias '%s' -ResetServerAddresses", adapter))
 	} else {
 		servers := strings.Join(provider.Servers, ",")
-		cmd = exec.Command("powershell", "-Command",
+		cmd = powershell("-Command",
 			fmt.Sprintf("Set-DnsClientServerAddress -InterfaceAlias '%s' -ServerAddresses %s", adapter, servers))
 	}
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to update DNS: %w (you may need to run as Administrator)", err)
+		return fmt.Errorf("failed to update DNS: %w (make sure you are running as Administrator)", err)
 	}
 
-	flushCmd := exec.Command("ipconfig", "/flushdns")
-	_ = flushCmd.Run() // Ignore errors, not critical
+	flushCmd := exec.Command("C:\\Windows\\System32\\ipconfig.exe", "/flushdns")
+	_ = flushCmd.Run()
 
 	return nil
 }
