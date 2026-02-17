@@ -136,6 +136,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "c":
 				m.monitorMode = false
 				m.selected = -1
+				return m, tea.Quit
 			}
 			return m, nil
 		}
