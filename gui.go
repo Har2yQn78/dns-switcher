@@ -1,4 +1,4 @@
-//go:build windows
+//go:build windows && gui
 
 package main
 
@@ -146,7 +146,7 @@ func makeSidebar(contentArea *fyne.Container, w fyne.Window) fyne.CanvasObject {
 		state.activeDNS = nil
 		state.mu.Unlock()
 		stopMonitor()
-		
+
 		var resetProv DNSProvider
 		for _, p := range providers {
 			if p.Name == "Reset to Default" {
@@ -157,7 +157,7 @@ func makeSidebar(contentArea *fyne.Container, w fyne.Window) fyne.CanvasObject {
 		if resetProv.Name != "" {
 			UpdateResolvConf(resetProv)
 		}
-		
+
 		dialog.ShowInformation("Disconnected", "DNS has been reset to system defaults.", w)
 		contentArea.Objects = []fyne.CanvasObject{makeServersPanel(contentArea, w)}
 		contentArea.Refresh()
