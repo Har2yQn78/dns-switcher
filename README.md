@@ -78,25 +78,40 @@ Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/lates
 
 ---
 
-## 🛠 Building from Source
-
-### Prerequisites
-
-- Go 1.21+
-- **Windows**: [MSYS2](https://www.msys64.org/) (for GCC/CGO) is required for the GUI.
-
-### Windows Build (GUI)
-
-```powershell
-$env:CGO_ENABLED="1"; $env:Path += ";C:\msys64\mingw64\bin"; & "C:\Program Files\Go\bin\go.exe" build -ldflags="-s -w -H windowsgui" -o dns-switcher.exe .
-```
-
-### Linux/macOS Build (TUI)
+### Option 2: Install with Go
 
 ```bash
-go build -o dns-switcher .
+go install github.com/Har2yQn78/dns-switcher@latest
 ```
 
+### Option 3: Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/Har2yQn78/dns-switcher.git
+cd dns-switcher
+
+# Build
+go build -ldflags="-s -w" -o dns-switcher
+
+# Install
+sudo cp dns-switcher /usr/local/bin/
+sudo chmod +x /usr/local/bin/dns-switcher
+```
+
+## Usage
+
+**Linux/macOS:**
+
+```bash
+sudo dns-switcher
+```
+
+**Windows:**
+
+```powershell
+# Run as Administrator (Right-click PowerShell -> Run as Administrator)
+.\dns-switcher.exe
 ---
 
 ## 🧭 Navigation
@@ -141,3 +156,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - [Lip Gloss](https://github.com/charmbracelet/lipgloss) - Terminal styling.
 
 Created by [Harry](https://github.com/Har2yQn78)
+```
