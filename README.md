@@ -1,245 +1,89 @@
-# DNS Changer
+# DNS Switcher ⚡
 
-A fast, simple CLI tool to change DNS servers on Linux systems with a TUI interface.
+A high-performance DNS management tool that provides a **Native Windows GUI** and a sleek **Terminal UI (TUI)** for Unix-based systems. Optimize your internet speed and privacy with one click.
 
-![DNS Changer](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%11%20macOS-blue)
+![Architecture](https://img.shields.io/badge/Interface-GUI%20%26%20TUI-brightgreen)
 
-## Features
+## ✨ Features
 
-- Fast and lightweight
-- Automatic backup of DNS configuration (Linux)
-- DNS validation after changes
-- Automatic systemd-resolved restart (Linux)
-- Single binary, no dependencies
-- Linux support (tested on Ubuntu/Pop!\_OS)
-- macOS support (Intel & Apple Silicon)
-- Windows support (64-bit, 32-bit, ARM64)
-- **Custom DNS input** - Add your own DNS servers on the fly
-- **Speed test** - Automatically tests latency of all DNS providers
-- **Interactive monitoring** - Live dashboard with real-time DNS performance stats
+- **Dual-Interface System**:
+    - **Windows**: Beautiful native GUI inspired by V2RayNG (built with Fyne).
+    - **Linux/macOS**: Professional, interactive Terminal UI (built with BubbleTea).
+- **Embedded Branded Icon**: Windows executable comes with a custom blue shield icon.
+- **Speed Sorting**: One-click "Sort by Speed" to instantly find the lowest latency servers.
+- **Live Monitoring**: Real-time dashboard showing uptime, latency, and query success/failure.
+- **Safe & Secure**: 
+    - Automatic Windows UAC prompt for Administrator elevation.
+    - Automatic DNS configuration backup (Linux).
+- **Dedicated Disconnect**: Easily revert to system default DNS settings with a single button/hotkey.
+- **Extensive Provider List**: Over 15+ pre-configured high-performance DNS servers.
 
-## Supported DNS Providers
+## 🚀 Installation
 
-- Shecan
-- Radar
-- Electro
-- Begzar
-- UltraDNS
-- DNS Pro
-- DynX
-- 403
-- Google DNS
-- Cloudflare DNS
-- Reset to Default
+### Windows (GUI)
+1. Download `dns-switcher.exe` from the latest release.
+2. Run as Administrator.
+3. Enjoy the V2RayNG-inspired dark theme.
 
-## Installation
+### Linux/macOS (TUI)
+1. Download the binary for your platform.
+2. Run with sudo: `sudo ./dns-switcher`
 
-### Option 1: Install from Release (Recommended)
+---
 
-Download the latest release from the [releases page](https://github.com/Har2yQn78/dns-switcher/releases):
+## 🛠 Building from Source
 
-**Linux:**
+### Prerequisites
+- Go 1.21+
+- **Windows**: [MSYS2](https://www.msys64.org/) (for GCC/CGO) is required for the GUI.
 
-```bash
-# Download the binary
-wget https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-linux-amd64
-
-# Install it
-sudo mv dns-switcher-linux-amd64 /usr/local/bin/dns-switcher
-sudo chmod +x /usr/local/bin/dns-switcher
-```
-
-**macOS (Intel):**
-
-```bash
-# Download the binary
-curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-macos-amd64 -o dns-switcher
-
-# Install it
-sudo mv dns-switcher /usr/local/bin/
-sudo chmod +x /usr/local/bin/dns-switcher
-```
-
-**macOS (Apple Silicon):**
-
-```bash
-# Download the binary
-curl -L https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-macos-arm64 -o dns-switcher
-
-# Install it
-sudo mv dns-switcher /usr/local/bin/
-sudo chmod +x /usr/local/bin/dns-switcher
-```
-
-**Windows (64-bit):**
-
+### Windows Build (GUI)
 ```powershell
-# Download using PowerShell
-Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-windows-amd64.exe" -OutFile "dns-switcher.exe"
-
-# Move to a directory in your PATH (optional)
-# Or run directly from current directory
+$env:CGO_ENABLED="1"; $env:Path += ";C:\msys64\mingw64\bin"; & "C:\Program Files\Go\bin\go.exe" build -ldflags="-s -w -H windowsgui" -o dns-switcher.exe .
 ```
 
-**Windows (32-bit):**
-
-```powershell
-# Download using PowerShell
-Invoke-WebRequest -Uri "https://github.com/Har2yQn78/dns-switcher/releases/latest/download/dns-switcher-windows-386.exe" -OutFile "dns-switcher.exe"
-```
-
-### Option 2: Install with Go
-
+### Linux/macOS Build (TUI)
 ```bash
-go install github.com/Har2yQn78/dns-switcher@latest
+go build -o dns-switcher .
 ```
 
-### Option 3: Build from Source
+---
 
-```bash
-# Clone the repository
-git clone https://github.com/Har2yQn78/dns-switcher.git
-cd dns-switcher
+## 🧭 Navigation
 
-# Build
-go build -ldflags="-s -w" -o dns-switcher
+### Windows (GUI)
+- **Sidebar**: Toggle between DNS Servers, Monitoring, and Settings.
+- **Connect**: Click a provider's card to switch immediately.
+- **Sort**: Use the "Sort by Speed" button in the header.
 
-# Install
-sudo cp dns-switcher /usr/local/bin/
-sudo chmod +x /usr/local/bin/dns-switcher
-```
+### Linux/macOS (TUI)
+- `↑/↓` or `j/k`: Navigate through providers.
+- `Enter`: Select a provider.
+- `r`: Refresh latency in monitor mode.
+- `c`: Change DNS (go back).
+- `q`: Quit.
 
-## Usage
+---
 
-**Linux/macOS:**
+## 📋 Supported DNS Providers
+- **Privacy**: Shecan, AdGuard, CleanBrowsing.
+- **Performance**: Cloudflare, Google, OpenDNS, Quad9.
+- **Regional**: Radar, Electro, Begzar, 403.
+- **Custom**: "Add Custom DNS" allows you to paste any IP (e.g., `8.8.8.8 1.1.1.1`).
 
-```bash
-sudo dns-switcher
-```
+## ⚙️ How It Works
+- **Windows**: Uses PowerShell `Set-DnsClientServerAddress` and `ipconfig /flushdns`.
+- **Linux**: Manages `/etc/resolv.conf` and restarts `systemd-resolved`.
+- **macOS**: Uses the system `networksetup` utility for active services.
 
-**Windows:**
-
-```powershell
-# Run as Administrator (Right-click PowerShell -> Run as Administrator)
-.\dns-switcher.exe
-```
-
-**Note:** Administrator/root privileges are required to modify DNS settings.
-
-### Navigation
-
-**Main Menu:**
-
-- `↑/↓` or `j/k` - Navigate through providers
-- `Enter` - Select a provider
-- `q` or `Ctrl+C` - Quit
-
-**Monitoring Mode:**
-
-- `r` - Refresh (test DNS immediately)
-- `c` - Change DNS (return to selection menu)
-- `q` - Quit
-
-## Requirements
-
-- **Linux** (tested on Ubuntu/Pop!\_OS), **macOS** (10.13+), or **Windows** (10/11)
-- Administrator/root/sudo access
-- Go 1.21+ (for building from source)
-
-## How It Works
-
-**Linux:**
-
-1. Displays current DNS servers
-2. Shows a list of available DNS providers
-3. Backs up current `/etc/resolv.conf`
-4. Updates DNS configuration
-5. Restarts `systemd-resolved` if active
-6. Validates DNS servers are responding
-
-**macOS:**
-
-1. Displays current DNS servers
-2. Shows a list of available DNS providers
-3. Uses `networksetup` to change DNS for active network service
-4. Validates DNS servers are responding
-
-**Windows:**
-
-1. Displays current DNS servers
-2. Shows a list of available DNS providers
-3. Uses PowerShell `Set-DnsClientServerAddress` to update DNS
-4. Flushes DNS cache
-5. Validates DNS servers are responding
-
-## New Features
-
-### Speed Testing
-
-Before displaying the menu, the tool automatically tests the latency of all DNS providers. Results are displayed with color coding:
-
-- 🟢 **Green** - Fast (< 20ms)
-- 🟡 **Yellow** - Medium (20-50ms)
-- 🔴 **Red** - Slow (> 50ms)
-
-### Custom DNS
-
-Select "Add Custom DNS" from the menu to enter your own DNS servers. Supports both comma and space-separated formats:
-
-- `8.8.8.8,1.1.1.1`
-- `8.8.8.8 1.1.1.1`
-
-### Interactive Monitoring
-
-After changing DNS, automatically enters monitoring mode showing:
-
-- Real-time latency updates (every second)
-- Query success/failure counts
-- Uptime since DNS change
-- Current DNS servers
-
-Press `c` to change DNS again, or `q` to quit.
-
-## Backup
-
-**Linux only:** Every time you change DNS, a backup is created at:
-
-```
-/etc/resolv.conf.bak.YYYYMMDD_HHMMSS
-```
-
-To restore from backup:
-
-```bash
-sudo cp /etc/resolv.conf.bak.YYYYMMDD_HHMMSS /etc/resolv.conf
-```
-
-**macOS:** DNS changes can be reverted by selecting "Reset to Default" or manually via System Preferences → Network.
-
-**Windows:** DNS changes can be reverted by selecting "Reset to Default" or manually via Settings → Network & Internet → Change adapter options → Properties → IPv4 Properties.
-
-## Configuration
-
-All DNS providers are defined in `providers.go`. To add your own:
-
-```go
-{Name: "Custom DNS", Servers: []string{"1.2.3.4", "5.6.7.8"}},
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
+## 📄 License
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## Author
+## 🤝 Acknowledgments
+- [Fyne](https://fyne.io/) - Native Windows GUI framework.
+- [Bubble Tea](https://github.com/charmbracelet/bubbletea) - Terminal UI framework.
+- [Lip Gloss](https://github.com/charmbracelet/lipgloss) - Terminal styling.
 
 Created by [Harry](https://github.com/Har2yQn78)
-
-## Acknowledgments
-
-- Built with [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI framework
-- Styled with [Lip Gloss](https://github.com/charmbracelet/lipgloss) - Terminal styling
