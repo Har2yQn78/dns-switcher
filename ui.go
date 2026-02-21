@@ -1,13 +1,24 @@
+//go:build !windows
+
 package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+func RunApp() {
+	p := tea.NewProgram(initialModel())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Alas, there's been an error: %v", err)
+		os.Exit(1)
+	}
+}
 
 type tickMsg time.Time
 
@@ -214,36 +225,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
-}
-
-func formatDuration(seconds int) string {
-	if seconds < 60 {
-		return fmt.Sprintf("%ds", seconds)
-	}
-	minutes := seconds / 60
-	secs := seconds % 60
-	if minutes < 60 {
-		return fmt.Sprintf("%dm %ds", minutes, secs)
-	}
-	hours := minutes / 60
-	mins := minutes % 60
-	return fmt.Sprintf("%dh %dm", hours, mins)
-}
-
-func parseCustomDNS(input string) []string {
-	input = strings.ReplaceAll(input, ",", " ")
-
-	parts := strings.Fields(input)
-
-	var servers []string
-	for _, part := range parts {
-		part = strings.TrimSpace(part)
-		if part != "" {
-			servers = append(servers, part)
-		}
-	}
-
-	return servers
 }
 
 func (m model) View() string {
