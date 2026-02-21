@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Build and Release
+  build-unix:
+    name: Build Linux and macOS (TUI)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -21,31 +21,76 @@ jobs:
         with:
           go-version: "1.21"
 
-      - name: Build binaries
+      - name: Build Linux and macOS binaries
         run: |
-          # Linux TUI (AMD64)
+          # Linux AMD64
           GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dns-switcher-linux-amd64
 
-          # Linux TUI (ARM64)
+          # Linux ARM64
           GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dns-switcher-linux-arm64
 
-          # Linux TUI (386)
+          # Linux 386
           GOOS=linux GOARCH=386 go build -ldflags="-s -w" -o dns-switcher-linux-386
 
-          # macOS TUI (Intel)
+          # macOS AMD64 (Intel)
           GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dns-switcher-macos-amd64
 
-          # macOS TUI (Apple Silicon)
+          # macOS ARM64 (Apple Silicon)
           GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dns-switcher-macos-arm64
 
-          # Windows GUI (AMD64)
-          GOOS=windows GOARCH=amd64 go build -tags gui -ldflags="-s -w -H=windowsgui" -o dns-switcher-windows-amd64.exe
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unix-binaries
+          path: |
+            dns-switcher-linux-*
+            dns-switcher-macos-*
 
-          # Windows GUI (386)
-          GOOS=windows GOARCH=386 go build -tags gui -ldflags="-s -w -H=windowsgui" -o dns-switcher-windows-386.exe
+  build-windows:
+    name: Build Windows (GUI)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-          # Windows GUI (ARM64)
-          GOOS=windows GOARCH=arm64 go build -tags gui -ldflags="-s -w -H=windowsgui" -o dns-switcher-windows-arm64.exe
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Build Windows GUI binaries
+        run: |
+          # Windows AMD64
+          go build -tags gui -ldflags="-s -w -H=windowsgui" -o dns-switcher-windows-amd64.exe
+
+          # Windows 386
+          set GOARCH=386
+          go build -tags gui -ldflags="-s -w -H=windowsgui" -o dns-switcher-windows-386.exe
+
+          # Windows ARM64
+          set GOARCH=arm64
+          go build -tags gui -ldflags="-s -w -H=windowsgui" -o dns-switcher-windows-arm64.exe
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: "*.exe"
+
+  release:
+    name: Create Release
+    needs: [build-unix, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Unix binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: unix-binaries
+
+      - name: Download Windows binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-binaries
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
