@@ -63,14 +63,16 @@ var (
 )
 
 type model struct {
-	cursor         int
-	selected       int
-	quitting       bool
-	inputMode      bool
-	customInput    string
-	customError    string
-	monitorMode    bool
-	monitorStats   MonitorStats
+	cursor       int
+	selected     int
+	quitting     bool
+	inputMode    bool
+	customInput  string
+	customError  string
+	monitorMode  bool
+	monitorStats MonitorStats
+	scrollOffset int
+	termHeight   int
 }
 
 type MonitorStats struct {
@@ -93,6 +95,34 @@ func initialModel() model {
 		monitorMode:  false,
 		monitorStats: MonitorStats{},
 	}
+}
+
+func (m model) visibleRows() int {
+	if m.termHeight <= 0 {
+		return len(providers)
+	}
+	rows := m.termHeight - 12
+	if rows < 5 {
+		rows = 5
+	}
+	if rows > len(providers) {
+		rows = len(providers)
+	}
+	return rows
+}
+
+func (m model) adjustScroll() model {
+	visible := m.visibleRows()
+	if m.cursor < m.scrollOffset {
+		m.scrollOffset = m.cursor
+	}
+	if m.cursor >= m.scrollOffset+visible {
+		m.scrollOffset = m.cursor - visible + 1
+	}
+	if m.scrollOffset < 0 {
+		m.scrollOffset = 0
+	}
+	return m
 }
 
 func doTick() tea.Cmd {
@@ -126,6 +156,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return m, doTick()
 		}
+		return m, nil
+
+	case tea.WindowSizeMsg:
+		m.termHeight = msg.Height
 		return m, nil
 
 	case tea.KeyMsg:
@@ -205,11 +239,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
+				m = m.adjustScroll()
 			}
 
 		case "down", "j":
 			if m.cursor < len(providers)-1 {
 				m.cursor++
+				m = m.adjustScroll()
 			}
 
 		case "enter", " ":
@@ -307,7 +343,7 @@ func (m model) View() string {
 		b.WriteString(fmt.Sprintf("  > %s_\n\n", m.customInput))
 
 		if m.customError != "" {
-			b.WriteString(errorStyle.Render("  " + m.customError) + "\n\n")
+			b.WriteString(errorStyle.Render("  "+m.customError) + "\n\n")
 		}
 
 		b.WriteString(helpStyle.Render("  Example: 8.8.8.8,1.1.1.1 or 8.8.8.8 1.1.1.1") + "\n")
@@ -322,81 +358,112 @@ func (m model) View() string {
 	b.WriteString(titleStyle.Render("  DNS Changer") + "\n")
 	b.WriteString(helpStyle.Render("  Press q or ctrl+c to quit") + "\n\n")
 
-	border := borderStyle.Render("  ┌──────────────────────┬──────────────────────────────────────────┬──────────┐")
-	b.WriteString(border + "\n")
+	// Column content widths (characters of visible text)
+	const nameWidth = 20
+	const serverWidth = 40
+	const latWidth = 8
 
-	header := fmt.Sprintf("  │ %-20s │ %-40s │ %-8s │",
-		headerStyle.Render("Provider"),
-		headerStyle.Render("DNS Servers"),
-		headerStyle.Render("Latency"),
-	)
+	topBorder := fmt.Sprintf("  ┌%s┬%s┬%s┐",
+		strings.Repeat("─", nameWidth+2),
+		strings.Repeat("─", serverWidth+2),
+		strings.Repeat("─", latWidth+2))
+	b.WriteString(borderStyle.Render(topBorder) + "\n")
+
+	hProvider := fmt.Sprintf("%-*s", nameWidth, "Provider")
+	hServers := fmt.Sprintf("%-*s", serverWidth, "DNS Servers")
+	hLatency := fmt.Sprintf("%-*s", latWidth, "Latency")
+	header := fmt.Sprintf("  │ %s │ %s │ %s │",
+		headerStyle.Render(hProvider),
+		headerStyle.Render(hServers),
+		headerStyle.Render(hLatency))
 	b.WriteString(header + "\n")
 
-	separator := borderStyle.Render("  ├──────────────────────┼──────────────────────────────────────────┼──────────┤")
-	b.WriteString(separator + "\n")
+	sep := fmt.Sprintf("  ├%s┼%s┼%s┤",
+		strings.Repeat("─", nameWidth+2),
+		strings.Repeat("─", serverWidth+2),
+		strings.Repeat("─", latWidth+2))
+	b.WriteString(borderStyle.Render(sep) + "\n")
 
-	for i, provider := range providers {
-		var rowStyle lipgloss.Style
-		if m.cursor == i {
-			rowStyle = selectedRowStyle
-		} else {
-			rowStyle = normalRowStyle
-		}
+	// Viewport scrolling
+	visible := m.visibleRows()
+	startIdx := m.scrollOffset
+	endIdx := startIdx + visible
+	if endIdx > len(providers) {
+		endIdx = len(providers)
+	}
+
+	for i := startIdx; i < endIdx; i++ {
+		provider := providers[i]
 
 		providerName := provider.Name
 		if m.cursor == i {
-			providerName = "> " + providerName
+			providerName = "▸ " + providerName
 		} else {
 			providerName = "  " + providerName
 		}
+		paddedName := fmt.Sprintf("%-*s", nameWidth, providerName)
 
 		var servers string
 		if len(provider.Servers) == 0 {
 			servers = ""
 		} else if len(provider.Servers) == 1 {
-			servers = fmt.Sprintf("%-16s", provider.Servers[0])
+			servers = provider.Servers[0]
 		} else {
-			servers = fmt.Sprintf("%-16s %-16s", provider.Servers[0], provider.Servers[1])
+			servers = fmt.Sprintf("%-17s %s", provider.Servers[0], provider.Servers[1])
 		}
-
-		servers = fmt.Sprintf("%-40s", servers)
+		paddedServers := fmt.Sprintf("%-*s", serverWidth, servers)
 
 		var latencyStr string
-		var latencyStyle lipgloss.Style
+		var latStyle lipgloss.Style
 
 		if provider.Latency == -1 {
-			latencyStr = "     N/A"
-			latencyStyle = failedLatencyStyle
+			latencyStr = "N/A"
+			latStyle = failedLatencyStyle
 		} else if provider.Latency < 20 {
-			latencyStr = fmt.Sprintf("%6dms", provider.Latency)
-			latencyStyle = fastLatencyStyle
+			latencyStr = fmt.Sprintf("%dms", provider.Latency)
+			latStyle = fastLatencyStyle
 		} else if provider.Latency < 50 {
-			latencyStr = fmt.Sprintf("%6dms", provider.Latency)
-			latencyStyle = mediumLatencyStyle
+			latencyStr = fmt.Sprintf("%dms", provider.Latency)
+			latStyle = mediumLatencyStyle
 		} else {
-			latencyStr = fmt.Sprintf("%6dms", provider.Latency)
-			latencyStyle = slowLatencyStyle
+			latencyStr = fmt.Sprintf("%dms", provider.Latency)
+			latStyle = slowLatencyStyle
 		}
+		paddedLatency := fmt.Sprintf("%*s", latWidth, latencyStr)
 
 		if m.cursor == i {
-			row := fmt.Sprintf("  │ %-20s │ %-40s │ %s │",
-				rowStyle.Render(providerName),
-				rowStyle.Render(servers),
-				rowStyle.Render(latencyStr),
-			)
+			row := fmt.Sprintf("  │ %s │ %s │ %s │",
+				selectedRowStyle.Render(paddedName),
+				selectedRowStyle.Render(paddedServers),
+				selectedRowStyle.Render(paddedLatency))
 			b.WriteString(row + "\n")
 		} else {
-			row := fmt.Sprintf("  │ %-20s │ %-40s │ %s │",
-				rowStyle.Render(providerName),
-				serverStyle.Render(servers),
-				latencyStyle.Render(latencyStr),
-			)
+			row := fmt.Sprintf("  │ %s │ %s │ %s │",
+				normalRowStyle.Render(paddedName),
+				serverStyle.Render(paddedServers),
+				latStyle.Render(paddedLatency))
 			b.WriteString(row + "\n")
 		}
 	}
 
-	bottomBorder := borderStyle.Render("  └──────────────────────┴──────────────────────────────────────────┴──────────┘")
-	b.WriteString(bottomBorder + "\n\n")
+	btmBorder := fmt.Sprintf("  └%s┴%s┴%s┘",
+		strings.Repeat("─", nameWidth+2),
+		strings.Repeat("─", serverWidth+2),
+		strings.Repeat("─", latWidth+2))
+	b.WriteString(borderStyle.Render(btmBorder) + "\n")
+
+	// Scroll indicators
+	var scrollInfo []string
+	if startIdx > 0 {
+		scrollInfo = append(scrollInfo, fmt.Sprintf("▲ %d more above", startIdx))
+	}
+	if endIdx < len(providers) {
+		scrollInfo = append(scrollInfo, fmt.Sprintf("▼ %d more below", len(providers)-endIdx))
+	}
+	if len(scrollInfo) > 0 {
+		b.WriteString(helpStyle.Render("  "+strings.Join(scrollInfo, " • ")) + "\n")
+	}
+	b.WriteString("\n")
 
 	help := helpStyle.Render("  Use ↑/↓ or j/k to navigate • enter to select • q to quit")
 	b.WriteString(help + "\n")
