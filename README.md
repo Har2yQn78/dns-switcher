@@ -3,7 +3,7 @@
 A high-performance DNS management tool that provides a **Native Windows GUI** and a sleek **Terminal UI (TUI)** for Unix-based systems. Optimize your internet speed and privacy with one click.
 
 ![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%11%20macOS-blue)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)
 ![Architecture](https://img.shields.io/badge/Interface-GUI%20%26%20TUI-brightgreen)
 
 ## ✨ Features
@@ -112,6 +112,7 @@ sudo dns-switcher
 ```powershell
 # Run as Administrator (Right-click PowerShell -> Run as Administrator)
 .\dns-switcher.exe
+```
 ---
 
 ## 🧭 Navigation
