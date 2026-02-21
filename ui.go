@@ -60,12 +60,6 @@ var (
 
 	failedLatencyStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#6272A4"))
-	infoStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#F8F8F2"))
-
-errorStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF5555"))
-
 )
 
 type model struct {
